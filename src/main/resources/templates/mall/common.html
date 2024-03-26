@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Title</title>
+    <style>
+        .link-anim dt {
+            color: #646464;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .link-anim dd a{
+            color: grey;
+        }
+        .link-anim dd{
+            padding-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+<!--
+    这里包含了每个页面的公共模块
+-->
+<!--头部 导航条模块-->
+<div class="layui-header header" th:fragment="head">
+    <script>
+        jQuery(document).on('click', '#search', function() {
+            // 例如，可以显示搜索框或者跳转到搜索页面等
+            var searchInputValue = document.getElementById("searchInput").value;
+            searchInput(searchInputValue);
+        });
+        function searchInput(searchInputValue) {
+            $.get("/mall/product/search.do?title=" + searchInputValue, function (data) {
+                if (data.state == 0) {
+                    layer.msg("查询成功！结果有"+data.data.length+"个商品");
+                    console.log(data)
+                    $('#content').empty();
+                    var div = $("#content");
+                    appendToPage(div, data.data);
+                } else {
+                    layer.msg(data.message);
+                }
+            });
+        }
+        //        <![CDATA[
+        var layer;
+        layui.use(["layer","element"],function () {
+            layer = layui.layer;
+        });
+
+        function appendToPage(div, data) {
+            $(data).each(function (index, item) {
+                var productDiv = $("<div class='layui-col-md3 layui-col-xs6'></div>");
+                var conetDiv = $("<div class='card layui-anim layui-anim-scale'></div>");
+                productDiv.append(conetDiv);
+                var imgdiv = $("<div class='product_image'><img src=" + item.image + "></div>");
+                conetDiv.append(imgdiv);
+                var priceDiv = $("<div style='text-align: left;'>零售价：<span class='price1'>" + item.shopPrice + "</span></div>");
+                conetDiv.append(priceDiv);
+                conetDiv.append($("<div class='product_title'><a href='/mall/product/get.html?id="+item.id+"'>" + item.title + "</a></div>"));
+                div.append(productDiv);
+            });
+        }
+        //JavaScript代码区域
+        //        ]]>
+    </script>
+    <div class="layui-main">
+        <a class="logo" href="/mall/index.html">
+            <!--            <img th:src="@{/image/logo.png}"/>-->
+            <div style="margin-top: 10px;font-size: 20px;color: white">百货零售网</div>
+        </a>
+        <!-- 头部区域（可配合layui已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left">
+            <div style="margin-top: 10px;margin-left: 450px;display: flex">
+                <input id="searchInput" type="text" style="width: 200px;" name="title" placeholder="搜索框" class="layui-input"/>
+                <i id="search" style="margin-top: 10px;margin-left: 10px;cursor: pointer" class="fa fa-search"></i>
+            </div>
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item" style="color:#393D49;">
+                <a href="javascript:;">分类</a>
+                <dl class="layui-nav-child" id="category">
+
+                </dl>
+                <script>
+                    //                    <![CDATA[
+                    //加载分类
+                    $.get("/mall/admin/classification/list.do?type=1&pageindex=-1", function (data) {
+                        if (data.state == 0) {
+                            var list = $("#category");
+                            $(data.data).each(function (index, item) {
+                                var cat = $("<dd><a href='/mall/product/category.html?cid="+item.id+"'>" + item.cname + "</a></dd>");
+                                list.append(cat);
+                            })
+                        } else {
+                            alert(data.message);
+                        }
+                    });
+                    //                    ]]>
+                </script>
+            </li>
+            <li class="layui-nav-item">
+                <a href="javascript:;">
+                    <i class="fa fa-user-circle"></i>&nbsp;
+                    <span th:if="${session.user == null}">请登陆</span>
+                    <span th:if="${session.user != null}" th:text="'欢迎您!&nbsp;' + ${session.user.username}">请登陆</span>
+                </a>
+                <dl class="layui-nav-child">
+                    <dd th:if="${session.user != null}"><a href="/mall/user/logout.do"><i class="fa fa-sign-out"></i> 退出登录</a></dd>
+                    <dd th:if="${session.user != null}"><a href="/mall/order/toList.html"><i class="fa fa-list"></i> 我的订单</a></dd>
+                    <dd th:if="${session.user != null}"><a href="/mall/product/toCart.html"><i class="fa fa-shopping-cart"></i> 购物车</a></dd>
+                    <dd th:if="${session.user == null}"><a href="/mall/user/toLogin.html"><i class="fa fa-sign-in"></i> 登录</a></dd>
+                    <dd th:if="${session.user == null}"><a href="/mall/user/toRegister.html"><i class="fa fa-user-plus"></i> 注册</a></dd>
+                </dl>
+            </li>
+            <!--<li class="layui-nav-item"><a href="">退了</a></li>-->
+        </ul>
+    </div>
+</div>
+
+<!--底部模块-->
+<div th:fragment="foot">
+    <hr style="color: #c2c2c2;" />
+    <div class="layui-row">
+    <img th:src="@{/image/logo.png}"/>
+    <img th:src="@{/image/foot.png}"/>
+    </div>
+    <div class="layui-row layui-col-space1" style="margin-top: 10px">
+        <div class="layui-col-md3 footer-list">
+            <div class="foot-dl" style="margin-left: 100px">
+                <dl class="link-anim">
+                <dt>服务保障</dt>
+                <dd>
+                    <a href="" target="_blank" rel="nofollow">正品保证</a>
+                </dd>
+                <dd>
+                    <a href="" target="_blank" rel="nofollow">7天无理由放心退</a>
+                </dd>
+                <dd>
+                    <a href="" target="_blank" rel="nofollow">7x24小时客户服务</a>
+                </dd>
+                <dd>
+                    <a href="" target="_blank" rel="nofollow">7天无理由随心换</a>
+                </dd>
+            </dl>
+            </div>
+        </div>
+        <div class="layui-col-md3">
+            <div class="foot-dl" style="margin-left: 100px">
+                <dl class="link-anim">
+                <dt>购物指南</dt>
+                <dd>
+                    <a href="" target="_blank" rel="nofollow">导购演示</a>
+                </dd>
+                <dd>
+                    <a href="" target="_blank" rel="nofollow">订单操作</a>
+                </dd>
+                <dd>
+                    <a href="" target="_blank" rel="nofollow">会员注册</a>
+                </dd>
+                <dd>
+                    <a href="" target="_blank" rel="nofollow">账户管理</a>
+                </dd>
+            </dl>
+            </div>
+        </div>
+        <div class="layui-col-md3">
+            <div class="foot-dl" style="margin-left: 100px">
+                <dl class="link-anim">
+                <dt>支付方式</dt>
+                <dd>
+                    <a href="" target="_blank" rel="nofollow">23家主流网银支付</a>
+                </dd>
+                <dd>
+                    <a href="" target="_blank" rel="nofollow">支付宝、银联等支付</a>
+                </dd>
+                <dd>
+                    <a href="" target="_blank" rel="nofollow">信用卡支付</a>
+                </dd>
+                <dd>
+                    <a href="" target="_blank" rel="nofollow">零钱支付</a>
+                </dd>
+            </dl></div>
+        </div>
+        <div class="layui-col-md3">
+            <div class="foot-dl" style="margin-left: 100px">
+                <dl class="link-anim">
+                <dt>售后服务</dt>
+                <dd>
+                    <a href="" target="_blank" rel="nofollow">退货政策</a>
+                </dd>
+                <dd>
+                    <a href="" target="_blank" rel="nofollow">退货流程</a>
+                </dd>
+                <dd>
+                    <a href="" target="_blank" rel="nofollow">退款方式和时效</a>
+                </dd>
+                <dd>
+                    <a href="" target="_blank" rel="nofollow">换货服务</a>
+                </dd>
+            </dl></div>
+        </div>
+    </div>
+    <div class="layui-row" style="text-align: center">
+        ©版权所有 | 张康 | 2024毕设 | <a href="/mall/admin/toLogin.html">后台管理系统</a>
+    </div>
+    <!-- 底部固定区域 -->
+</div>
+
+</body>
+</html>
