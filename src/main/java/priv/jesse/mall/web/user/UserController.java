@@ -3,6 +3,7 @@ package priv.jesse.mall.web.user;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import priv.jesse.mall.entity.User;
 import priv.jesse.mall.entity.pojo.ResultBean;
@@ -19,6 +20,37 @@ import java.util.List;
 public class UserController {
     @Autowired
     private UserService userService;
+
+    @ResponseBody
+    @RequestMapping(method = RequestMethod.POST, value = "/update.do")
+    public ResultBean<Boolean> update(int id,String username,
+                                      String password,String name,
+                                      String phone,String email,
+                                      String addr) {
+        // 更新前先查询
+        User user = userService.findById(id);
+        user.setId(id);
+        user.setName(name);
+        user.setUsername(username);
+        user.setPassword(password);
+        user.setAddr(addr);
+        user.setEmail(email);
+        user.setPhone(phone);
+        userService.update(user);
+        return new ResultBean<>(true);
+    }
+
+
+    /**
+     * 个人中心
+     *
+     * @return
+     */
+    @RequestMapping("/userInfo.html")
+    public String userInfo() {
+        return "mall/user/userInfo";
+    }
+
 
     /**
      * 打开注册页面
